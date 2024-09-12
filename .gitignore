@@ -18,3 +18,17 @@ logs/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Docker-related ignores
+# Docker Compose override files
+docker-compose.override.yml
+
+# Docker environment variables
+.env.docker
+
+# Docker build files
+/build
+/tmp
+
+# Docker secrets
+secrets/
