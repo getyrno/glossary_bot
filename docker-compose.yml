@@ -1,10 +1,10 @@
-version: '3'
+version: '3.8'
 
 services:
   bot:
     build: .
     restart: always
-    environment:
-      - TELEGRAM_TOKEN=7319059348:AAGbP4qCmCusVfq4oyDPP_eNksAw2jSqe0g
+    env_file:
+      - .env
     ports:
       - "8000:8000" # Если необходимо
