@@ -15,6 +15,7 @@ from telegram.ext import (
 from search import find_best_match, save_user_definition
 from dotenv import load_dotenv
 from telegram.helpers import escape_markdown
+from ml.train_model import train_and_notify
 
 # Загрузка переменных окружения из .env файла
 load_dotenv()
@@ -60,12 +61,17 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # Экранируем специальные символы для MarkdownV2
         term_escaped = escape_markdown(term.capitalize(), version=2)
         definition_escaped = escape_markdown(definition, version=2)
+        train_and_notify(term_escaped, definition_escaped)
+
         response = f"*{term_escaped}*\n{definition_escaped}"
     else:
         response = "Термин не найден. Попробуйте другой запрос."
 
-    await update.message.reply_text(response, parse_mode=ParseMode.MARKDOWN_V2)
-    logger.info(f"Отправлен ответ пользователю {user.id}: {response}")
+    try:
+        await update.message.reply_text(response, parse_mode=ParseMode.MARKDOWN_V2)
+        logger.info(f"Отправлен ответ пользователю {user.id}: {response}")
+    except Exception as e:
+        logger.error(f"Ошибка при отправке сообщения: {e}")
 
 async def set_language(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """

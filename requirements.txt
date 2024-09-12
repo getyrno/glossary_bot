@@ -51,3 +51,6 @@ tqdm==4.66.5
 transformers==4.44.2
 typing_extensions==4.12.2
 urllib3==2.2.3
+pandas==2.0.1
+seaborn==0.12.2
+matplotlib==3.7.1
