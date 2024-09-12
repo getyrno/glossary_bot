@@ -19,6 +19,7 @@ async def find_best_match(query: str, language: str = 'en') -> tuple:
         # Получаем определение из внешних источников
         definition = await fetch_from_other_sources(query_lower, language=language)
         if definition:
+            train_and_notify(query_lower, definition)
             return query_lower, definition
 
         # Если определение не найдено
