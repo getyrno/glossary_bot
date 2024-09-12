@@ -4,7 +4,7 @@ services:
   bot:
     build: .
     restart: always
-    env_file:
-      - .env
+    environment:
+      - TELEGRAM_TOKEN=${TELEGRAM_TOKEN}
     ports:
       - "8000:8000" # Если необходимо
