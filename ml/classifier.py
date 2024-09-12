@@ -2,8 +2,9 @@ from deep_translator import GoogleTranslator
 from transformers import pipeline
 
 # Инициализация модели классификации
-classifier = pipeline("zero-shot-classification", model="typeform/distilbert-base-uncased-mnli")
-
+classifier = pipeline("zero-shot-classification", model="facebook/bart-large-mnli")
+result = classifier("Test term", candidate_labels=["science", "art", "programming"])
+print(result)
 # Инициализация переводчика
 translator = GoogleTranslator(source='auto', target='en')
 
