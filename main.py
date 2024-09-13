@@ -29,10 +29,6 @@ logger = logging.getLogger(__name__)
 TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 TOKEN2 = os.getenv('TELEGRAM_BOT_TOKEN2')
 CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
-logging.info(f"TOKEN: {TOKEN}")
-logging.info(f"TOKEN2: {TOKEN2}")
-logging.info(f"CHAT_ID: {CHAT_ID}")
-
 if not TOKEN:
     logger.error("TELEGRAM_BOT_TOKEN не установлен в переменных окружения.")
     exit(1)
@@ -97,6 +93,9 @@ def main():
     application.add_handler(CommandHandler('start', start))
     application.add_handler(CommandHandler('set_language', set_language))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    logger.info(f"TOKEN: {TOKEN}")
+    logger.info(f"TOKEN2: {TOKEN2}")
+    logger.info(f"CHAT_ID: {CHAT_ID}")
 
     logger.info("Бот запущен и готов к работе.")
     application.run_polling()
