@@ -13,12 +13,12 @@ logger.setLevel(logging.DEBUG)
 console_handler = logging.StreamHandler()
 console_handler.setLevel(logging.INFO)
 
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levellevel)s - %(message)s')
 console_handler.setFormatter(formatter)
 
 logger.addHandler(console_handler)
 
-# Модель классификации (можно убрать, если не нужна)
+# Модель классификации
 classifier = pipeline("zero-shot-classification", model="facebook/bart-large-mnli")
 
 # Переводчик
@@ -26,12 +26,11 @@ translator = GoogleTranslator(source='auto', target='en')
 
 # Кэширование результатов
 @lru_cache(maxsize=1000)  # Кэшируем до 1000 последних запросов
-async def classify_term_context(term, definition):
+def classify_term_context(term, definition):
     logger.info("Начало функции классификации")
 
     candidate_labels = [
-    # Естественные науки
-    "математика", "физика", "химия", "биология", "геология", "астрономия",
+        "математика", "физика", "химия", "биология", "геология", "астрономия",
     "науки о Земле", "экология", "оценка воздействия на окружающую среду",
     
     # Технические науки
@@ -89,8 +88,6 @@ async def classify_term_context_async(term, definition):
         loop = asyncio.get_event_loop()
         result = await loop.run_in_executor(None, classify_term_context, term, definition)
         return result
-
-
     else:
         # Если CPU выше 20%, сохраняем задачу в кэш для выполнения позднее
         logger.info(f"Загрузка CPU {cpu_load}%, сохраняем задачу в кэш")
@@ -101,15 +98,3 @@ async def classify_term_context_async(term, definition):
 async def cache_task(term, definition):
     logger.info(f"Сохраняем в кэш: {term}")
     return f"Задача для термина '{term}' сохранена в кэш. Выполнится позже."
-
-# Пример вызова основной функции
-async def main():
-    term = "пример"
-    definition = "примерное определение"
-    
-    # Попробуем выполнить задачу
-    result = await classify_term_context_async(term, definition)
-    print(result)
-
-if __name__ == "__main__":
-    asyncio.run(main())
