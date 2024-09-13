@@ -98,6 +98,7 @@ def main():
     logger.info("Бот запущен и готов к работе.")
     logger.info(f"TOKEN: {TOKEN}")
     logger.info(f"TOKEN2: {TOKEN2}")
+    
     logger.info(f"CHAT_ID: {CHAT_ID}")
     application.run_polling()
 
