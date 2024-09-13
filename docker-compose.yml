@@ -10,5 +10,4 @@ services:
     env_file:
       - .env
     ports:
-      - "9000:9000"
       - "9443:9443"
