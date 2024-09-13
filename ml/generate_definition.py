@@ -2,7 +2,8 @@ import torch
 import datetime
 import os
 from transformers import GPT2Tokenizer, GPT2LMHeadModel, MarianMTModel, MarianTokenizer
-from ..utils import translate
+from deep_translator import GoogleTranslator
+translator = GoogleTranslator()
 class bcolors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -64,6 +65,14 @@ def generate_definition_gpt2(term, p={
 
 def translate_text(text):
     start_time = datetime.datetime.now()
-    translation = translate(text, 'en', 'ru')
+    translation = translate(text, 'ru', 'en')
     print(calcTime(start_time) + ' - время перевода\n')
     return translation
+
+
+def translate(text: str, target_language: str, source_language: str = 'en') -> str:
+    try:
+        translator = GoogleTranslator(source=source_language, target=target_language)
+        return translator.translate(text)
+    except Exception as e:
+        return text
