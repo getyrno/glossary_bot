@@ -3,7 +3,7 @@ from .classifier import classify_term_context
 from .notification_bot import send_message
 
 # Настройка логирования
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 def train_and_notify(term, definition):
     logging.info(f"Начинаем классификацию для термина: {term}")
