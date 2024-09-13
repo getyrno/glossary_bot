@@ -2,7 +2,7 @@ from deep_translator import GoogleTranslator
 from transformers import pipeline
 
 # Инициализация модели классификации
-classifier = pipeline("zero-shot-classification", model="typeform/distilbert-base-uncased-mnli")
+classifier = pipeline("zero-shot-classification", model="joeddav/xlm-roberta-large-xnli")
 
 # Инициализация переводчика
 translator = GoogleTranslator(source='auto', target='en')
@@ -20,20 +20,30 @@ def classify_term_context(term, definition):
     definition_en = translator.translate(definition)
     
     # Объединяем переведенный текст для модели
-    text = f"Term: {term_en}. Definition: {definition_en}"
+    # text = f"Term: {term_en}. Definition: {definition_en}"
     
     # Расширенные контексты для классификации
     candidate_labels = [
-        "mathematics", "programming", "biology", "economics", "physics", 
-        "chemistry", "psychology", "philosophy", "artificial intelligence", 
-        "machine learning", "history", "geography", "literature", "medicine",
-        "sociology", "political science", "computer science", "engineering", 
-        "neuroscience", "robotics", "data science", "cryptography",
-        "web development", "cloud computing", "game development", "environmental science"
-    ]
+    "математика", "программирование", "биология", "экономика", "физика",
+    "химия", "психология", "философия", "искусственный интеллект",
+    "машинное обучение", "история", "география", "литература", "медицина",
+    "социология", "политология", "информатика", "инженерия",
+    "нейронаука", "робототехника", "наука о данных", "криптография",
+    "веб-разработка", "облачные вычисления", "разработка игр", "экология"
+]
+
     
     # Классификация с переведенным текстом
-    result = classifier(text, candidate_labels)
+    text = f"Термин: {term}. Определение: {definition}"
     
-    # Возвращаем контекст с наивысшей вероятностью
-    return result['labels'][0]
+    result = classifier(text, candidate_labels)
+    all_metrics = list(zip(result['labels'], result['scores']))
+    
+    # Печатаем все метрики
+    for label, score in all_metrics:
+        print(f"Метка: {label}, Вероятность: {score:.4f}")
+    best_label = result['labels'][0]
+    best_score = result['scores'][0]
+    
+    # Возвращаем метку и вероятность
+    return f"{best_label}: {best_score:.4f}"
