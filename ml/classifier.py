@@ -7,9 +7,14 @@ classifier = pipeline("zero-shot-classification", model="joeddav/xlm-roberta-lar
 
 # Инициализация переводчика
 translator = GoogleTranslator(source='auto', target='en')
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[logging.StreamHandler()]  # Убедитесь, что логи выводятся в консоль
+)
 
 def classify_term_context(term, definition):
+    logging.debug("Начало функции классификации")
 
     # Расширенные контексты для классификации
     candidate_labels = [
@@ -29,6 +34,7 @@ def classify_term_context(term, definition):
     all_metrics = list(zip(result['labels'], result['scores']))
     
     # Печатаем все метрики
+    logging.info("Результаты классификации:")
     for label, score in all_metrics:
         logging.info(f"Метка: {label}, Вероятность: {score:.4f}")
     best_label = result['labels'][0]
