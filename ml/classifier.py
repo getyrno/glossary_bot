@@ -1,12 +1,13 @@
 import logging
 from deep_translator import GoogleTranslator
 from transformers import pipeline
-
+from functools import lru_cache
+import asyncio
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.DEBUG)
+console_handler.setLevel(logging.INFO)
 
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 console_handler.setFormatter(formatter)
@@ -16,9 +17,9 @@ logger.addHandler(console_handler)
 classifier = pipeline("zero-shot-classification", model="joeddav/xlm-roberta-large-xnli")
 
 translator = GoogleTranslator(source='auto', target='en')
-
+@lru_cache(maxsize=1000)  # Кэшируем до 1000 последних запросов
 def classify_term_context(term, definition):
-    logger.debug("Начало функции классификации")
+    logger.info("Начало функции классификации")
     
     candidate_labels = [
     # Естественные науки
@@ -51,10 +52,10 @@ def classify_term_context(term, definition):
     "мода", "фотография", "дизайн", "графический дизайн", "анимация"
 ]
 
-    
-    logger.debug(f"Термин: {term}, Определение: {definition}")
+     
+    logger.info(f"Термин: {term}, Определение: {definition}")
     text = f"Термин: {term}. Определение: {definition}"
-    logger.debug("Вызов модели для классификации")
+    logger.info("Вызов модели для классификации")
     result = classifier(text, candidate_labels)
     all_metrics = list(zip(result['labels'], result['scores']))
     
@@ -65,7 +66,12 @@ def classify_term_context(term, definition):
     best_label = result['labels'][0]
     best_score = result['scores'][0]
     
-    logger.debug("Конец функции классификации")
+    logger.info("Конец функции классификации")
     
     return f"{best_label}: {best_score:.4f}"
 
+# Асинхронный вызов для интеграции с другими функциями
+async def classify_term_context_async(term, definition):
+    loop = asyncio.get_event_loop()
+    result = await loop.run_in_executor(None, classify_term_context, term, definition)
+    return result
