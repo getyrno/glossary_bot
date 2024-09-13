@@ -10,10 +10,10 @@ from telegram.ext import (
     MessageHandler,
     filters,
 )
+from ml.train_model import train_and_notify
 from search import find_best_match, save_user_definition
 from dotenv import load_dotenv
 from telegram.helpers import escape_markdown
-from ml.train_model import train_and_notify
 
 # Загрузка переменных окружения из .env файла
 load_dotenv()
@@ -98,7 +98,7 @@ def main():
     logger.info("Бот запущен и готов к работе.")
     logger.info(f"TOKEN: {TOKEN}")
     logger.info(f"TOKEN2: {TOKEN2}")
-    
+
     logger.info(f"CHAT_ID: {CHAT_ID}")
     application.run_polling()
 
