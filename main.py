@@ -11,7 +11,7 @@ from telegram.ext import (
     MessageHandler,
     filters
 )
-from ml.train_model import start_task
+from ml.train_model import process_term
 from search import find_best_match
 from dotenv import load_dotenv
 from telegram.helpers import escape_markdown
@@ -100,7 +100,7 @@ async def process_task(term, definition, elapsed_time):
     """
     try:
         loop = asyncio.get_event_loop()
-        await loop.run_in_executor(executor, start_task, term, definition, elapsed_time)
+        await loop.run_in_executor(executor, process_term, term, definition, elapsed_time)
         logger.info(f"Функция start_task завершена для термина '{term}'.")
         
     except Exception as e:
