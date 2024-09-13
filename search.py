@@ -2,7 +2,6 @@
 
 import logging
 from external_sources import fetch_from_other_sources
-from ml.train_model import train_and_notify
 logger = logging.getLogger(__name__)
 
 async def find_best_match(query: str, language: str = 'en') -> tuple:

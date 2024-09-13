@@ -38,7 +38,7 @@ if not TOKEN:
 if not CHAT_ID:
     logger.error("TELEGRAM_CHAT_ID не установлен в переменных окружения.")
     exit(1)
-    
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     Обработчик команды /start.
