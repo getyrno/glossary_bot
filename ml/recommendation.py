@@ -1,14 +1,32 @@
-# ml/recommendation.py
-import pandas as pd
-from sklearn.neighbors import NearestNeighbors
+# # ml/recommendation.py
+# import pandas as pd
+# from sklearn.neighbors import NearestNeighbors
+# from sklearn.feature_extraction.text import TfidfVectorizer
 
-def recommend_terms(user_history, term_vectors):
-    # Обучаем модель K-ближайших соседей для поиска похожих терминов
-    model = NearestNeighbors(n_neighbors=5)
-    model.fit(term_vectors)
+# def vectorize_terms(terms):
+#     """
+#     Векторизуем термины с использованием TF-IDF.
+#     """
+#     vectorizer = TfidfVectorizer()
+#     return vectorizer.fit_transform(terms).toarray()
+
+# def recommend_terms(user_history, term_vectors, original_terms):
+#     """
+#     Рекомендуем термины на основе истории пользователя.
+#     """
+#     # Проверяем форму массива
+#     if len(term_vectors.shape) == 1:
+#         term_vectors = term_vectors.reshape(-1, 1)
     
-    # Рекомендуем похожие термины на основе истории пользователя
-    distances, indices = model.kneighbors(user_history)
-    recommended_terms = [term_vectors[i] for i in indices.flatten()]
+#     n_neighbors = min(5, len(term_vectors))  # n_neighbors не должен превышать количество данных
+
+#     model = NearestNeighbors(n_neighbors=n_neighbors)
+#     model.fit(term_vectors)
+
+#     if len(user_history.shape) == 1:
+#         user_history = user_history.reshape(1, -1)
     
-    return recommended_terms
+#     distances, indices = model.kneighbors(user_history)
+#     recommended_terms = [original_terms[i] for i in indices.flatten()]
+    
+#     return recommended_terms
