@@ -11,7 +11,7 @@ import pandas as pd
 logging.basicConfig(level=logging.INFO)
 
 def train_and_notify(term, definition):
-     with ThreadPoolExecutor(max_workers=4) as executor:
+     with ThreadPoolExecutor(max_workers=1) as executor:
         future = executor.submit(process_term, term, definition)
         try:
             future.result()  # Дожидаемся завершения выполнения
