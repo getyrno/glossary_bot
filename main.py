@@ -11,7 +11,7 @@ from telegram.ext import (
     filters,
 )
 from ml.train_model import train_and_notify
-from search import find_best_match, save_user_definition
+from search import find_best_match
 from dotenv import load_dotenv
 from telegram.helpers import escape_markdown
 
@@ -24,17 +24,16 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
-TOKEN2 = os.getenv('TELEGRAM_BOT_TOKEN2')
 CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 if not TOKEN:
     logger.error("TELEGRAM_BOT_TOKEN не установлен в переменных окружения.")
     exit(1)
-if not TOKEN:
-    logger.error("TELEGRAM_BOT_TOKEN2 не установлен в переменных окружения.")
-    exit(1)
 if not CHAT_ID:
     logger.error("TELEGRAM_CHAT_ID не установлен в переменных окружения.")
     exit(1)
+
+# Создаем очередь
+task_queue = asyncio.Queue()
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
@@ -60,9 +59,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         term_escaped = escape_markdown(term.capitalize(), version=2)
         definition_escaped = escape_markdown(definition, version=2)
         
-        logger.info(f"Найдено определение для термина '{term}': {definition}. Начинается вызов train_and_notify.")
-        logger.info(f"Функция train_and_notify завершена для термина '{term_escaped}'.")
-
+        logger.info(f"Найдено определение для термина '{term}': {definition}. Добавление задачи в очередь.")
+        
         response = f"*{term_escaped}*\n{definition_escaped}"
     else:
         response = "Термин не найден. Попробуйте другой запрос."
@@ -70,12 +68,25 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         await update.message.reply_text(response, parse_mode=ParseMode.MARKDOWN_V2)
         
-        loop = asyncio.get_event_loop()
-        await loop.run_in_executor(None, train_and_notify, term_escaped, definition_escaped)
-
+        # Добавляем задачу в очередь
+        await task_queue.put((term_escaped, definition_escaped))
+        
         logger.info(f"Отправлен ответ пользователю {user.id}: {response}")
     except Exception as e:
         logger.error(f"Ошибка при отправке сообщения: {e}")
+
+async def worker():
+    """
+    Рабочий процесс для обработки задач из очереди.
+    """
+    while True:
+        term, definition = await task_queue.get()
+        try:
+            await asyncio.get_event_loop().run_in_executor(None, train_and_notify, [(term, definition)])
+        except Exception as e:
+            logger.error(f"Ошибка при обработке термина '{term}': {e}")
+        finally:
+            task_queue.task_done()
 
 async def set_language(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Функция смены языка пока не реализована.")
@@ -87,7 +98,12 @@ def main():
     application.add_handler(CommandHandler('set_language', set_language))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
     logger.info("Бот запущен и готов к работе.")
+    
+    # Запускаем рабочие процессы
+    loop = asyncio.get_event_loop()
+    loop.create_task(worker())
+    
     application.run_polling()
 
 if __name__ == '__main__':
-   main()
+    main()
