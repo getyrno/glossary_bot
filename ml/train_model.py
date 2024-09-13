@@ -1,10 +1,24 @@
-# train_model.py
+import logging
 from ml.classifier import classify_term_context
 from ml.notification_bot import send_message
 
-def train_and_notify(term, definition):    
+# Настройка логирования
+logging.basicConfig(level=logging.INFO)
+
+def train_and_notify(term, definition):
+    logging.info(f"Начинаем классификацию для термина: {term}")
+    
     # Классифицируем контекст термина
-    context = classify_term_context(term, definition)
+    try:
+        context = classify_term_context(term, definition)
+        logging.info(f"Контекст для термина '{term}' определен как: {context}")
+    except Exception as e:
+        logging.error(f"Ошибка при классификации термина '{term}': {e}")
+        return
     
     # Отправляем результаты в мониторингового бота
-    send_message(f"Term: {term}\nPredicted Context: {context}")
+    try:
+        send_message(f"Term: {term}\nPredicted Context: {context}")
+        logging.info(f"Сообщение успешно отправлено для термина '{term}' с контекстом '{context}'")
+    except Exception as e:
+        logging.error(f"Ошибка при отправке сообщения для термина '{term}': {e}")
