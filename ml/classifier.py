@@ -14,7 +14,7 @@ console_handler.setFormatter(formatter)
 
 logger.addHandler(console_handler)
 
-classifier = pipeline("zero-shot-classification", model="joeddav/xlm-roberta-large-xnli")
+classifier = pipeline("zero-shot-classification", model="typeform/distilbert-base-multilingual-cased-mnli")
 
 translator = GoogleTranslator(source='auto', target='en')
 @lru_cache(maxsize=1000)  # Кэшируем до 1000 последних запросов
