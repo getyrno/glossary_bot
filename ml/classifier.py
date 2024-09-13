@@ -1,8 +1,12 @@
 import logging
+import asyncio
+import os
+import time
 from deep_translator import GoogleTranslator
 from transformers import pipeline
 from functools import lru_cache
-import asyncio
+import psutil  # Для мониторинга загрузки CPU
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
@@ -14,13 +18,17 @@ console_handler.setFormatter(formatter)
 
 logger.addHandler(console_handler)
 
+# Модель классификации (можно убрать, если не нужна)
 classifier = pipeline("zero-shot-classification", model="typeform/distilbert-base-multilingual-cased-mnli")
 
+# Переводчик
 translator = GoogleTranslator(source='auto', target='en')
+
+# Кэширование результатов
 @lru_cache(maxsize=1000)  # Кэшируем до 1000 последних запросов
 async def classify_term_context(term, definition):
     logger.info("Начало функции классификации")
-    
+
     candidate_labels = [
     # Естественные науки
     "математика", "физика", "химия", "биология", "геология", "астрономия",
@@ -52,10 +60,10 @@ async def classify_term_context(term, definition):
     "мода", "фотография", "дизайн", "графический дизайн", "анимация"
 ]
 
-     
     logger.info(f"Термин: {term}, Определение: {definition}")
     text = f"Термин: {term}. Определение: {definition}"
     logger.info("Вызов модели для классификации")
+    
     result = classifier(text, candidate_labels)
     all_metrics = list(zip(result['labels'], result['scores']))
     
@@ -67,11 +75,41 @@ async def classify_term_context(term, definition):
     best_score = result['scores'][0]
     
     logger.info("Конец функции классификации")
-    
     return f"{best_label}: {best_score:.4f}"
 
 # Асинхронный вызов для интеграции с другими функциями
 async def classify_term_context_async(term, definition):
-    loop = asyncio.get_event_loop()
-    result = await loop.run_in_executor(None, classify_term_context, term, definition)
-    return result
+    # Получаем текущую загрузку CPU
+    cpu_load = psutil.cpu_percent(interval=1)
+    logger.info(f"Текущая загрузка CPU: {cpu_load}%")
+    
+    # Проверяем, если загрузка CPU ниже 20%, выполняем задачу
+    if cpu_load < 20:
+        logger.info("Загрузка CPU низкая, выполняем задачу")
+        loop = asyncio.get_event_loop()
+        result = await loop.run_in_executor(None, classify_term_context, term, definition)
+        return result
+
+
+    else:
+        # Если CPU выше 20%, сохраняем задачу в кэш для выполнения позднее
+        logger.info(f"Загрузка CPU {cpu_load}%, сохраняем задачу в кэш")
+        return await cache_task(term, definition)
+
+# Функция для кэширования задач
+@lru_cache(maxsize=1000)
+async def cache_task(term, definition):
+    logger.info(f"Сохраняем в кэш: {term}")
+    return f"Задача для термина '{term}' сохранена в кэш. Выполнится позже."
+
+# Пример вызова основной функции
+async def main():
+    term = "пример"
+    definition = "примерное определение"
+    
+    # Попробуем выполнить задачу
+    result = await classify_term_context_async(term, definition)
+    print(result)
+
+if __name__ == "__main__":
+    asyncio.run(main())
