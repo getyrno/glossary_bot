@@ -27,6 +27,11 @@ logger = logging.getLogger(__name__)
 
 # Получение токена из переменных окружения
 TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
+TOKEN2 = os.getenv('TELEGRAM_BOT_TOKEN2')
+CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
+logging.info(f"TOKEN: {TOKEN}")
+logging.info(f"TOKEN2: {TOKEN2}")
+logging.info(f"CHAT_ID: {CHAT_ID}")
 
 if not TOKEN:
     logger.error("TELEGRAM_BOT_TOKEN не установлен в переменных окружения.")
@@ -61,7 +66,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         definition_escaped = escape_markdown(definition, version=2)
         
         logger.info(f"Найдено определение для термина '{term}': {definition}. Начинается вызов train_and_notify.")
-        train_and_notify(term_escaped, definition_escaped)
         logger.info(f"Функция train_and_notify завершена для термина '{term_escaped}'.")
 
         response = f"*{term_escaped}*\n{definition_escaped}"
@@ -70,6 +74,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     try:
         await update.message.reply_text(response, parse_mode=ParseMode.MARKDOWN_V2)
+        train_and_notify(term_escaped, definition_escaped)
         logger.info(f"Отправлен ответ пользователю {user.id}: {response}")
     except Exception as e:
         logger.error(f"Ошибка при отправке сообщения: {e}")
