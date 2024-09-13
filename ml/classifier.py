@@ -82,16 +82,10 @@ async def classify_term_context_async(term, definition):
     cpu_load = psutil.cpu_percent(interval=1)
     logger.info(f"Текущая загрузка CPU: {cpu_load}%")
     
-    # Проверяем, если загрузка CPU ниже 20%, выполняем задачу
-    if cpu_load < 20:
-        logger.info("Загрузка CPU низкая, выполняем задачу")
-        loop = asyncio.get_event_loop()
-        result = await loop.run_in_executor(None, classify_term_context, term, definition)
-        return result
-    else:
-        # Если CPU выше 20%, сохраняем задачу в кэш для выполнения позднее
-        logger.info(f"Загрузка CPU {cpu_load}%, сохраняем задачу в кэш")
-        return await cache_task(term, definition)
+    logger.info("Загрузка CPU низкая, выполняем задачу")
+    loop = asyncio.get_event_loop()
+    result = await loop.run_in_executor(None, classify_term_context, term, definition)
+    return result
 
 # Функция для кэширования задач
 @lru_cache(maxsize=1000)

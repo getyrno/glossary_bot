@@ -1,7 +1,7 @@
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from ml.utils import preprocess_term, vectorize_terms
-from ml.classifier import classify_term_context
+from ml.classifier import classify_term_context_async
 from ml.generate_definition import generate_definition_gpt2
 from ml.notification_bot import send_message
 from ml.analysis import analyze_term_searches, visualize_recommendations
@@ -30,7 +30,7 @@ def process_term(term, definition, elapsed_time):
     logging.info(f"Векторизация завершена для термина: {processed_term}")
 
     try:
-        context = classify_term_context(processed_term, definition)
+        context = classify_term_context_async(processed_term, definition)
         logging.info(f"Контекст для термина '{term}' определен как: {context}")
     except Exception as e:
         logging.error(f"Ошибка при классификации термина '{term}': {e}")
