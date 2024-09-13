@@ -8,6 +8,7 @@ from ml.train_model import train_and_notify
 from search import find_best_match
 from dotenv import load_dotenv
 from telegram.helpers import escape_markdown
+from concurrent.futures import ThreadPoolExecutor
 
 load_dotenv()
 
@@ -28,6 +29,9 @@ if not CHAT_ID:
 
 # Очередь для задач
 task_queue = asyncio.Queue()
+
+# Экзекьютор для фоновых задач (чтобы не блокировать основной поток)
+executor = ThreadPoolExecutor(max_workers=4)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
@@ -67,7 +71,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         await update.message.reply_text(response, parse_mode=ParseMode.MARKDOWN_V2)
         
-        # Добавление задачи в очередь
+        # Добавляем задачу для фона
         await task_queue.put((term_escaped, definition_escaped))
         
         logger.info(f"Задача для термина '{term}' добавлена в очередь.")
@@ -81,8 +85,8 @@ async def worker():
     while True:
         term, definition = await task_queue.get()
         try:
-            # Вызов функции train_and_notify для обработки термина
-            await asyncio.get_event_loop().run_in_executor(None, train_and_notify, [(term, definition)])
+            # Асинхронно выполняем train_and_notify в отдельном потоке через executor
+            await asyncio.get_event_loop().run_in_executor(executor, train_and_notify, [(term, definition)])
         except Exception as e:
             logger.error(f"Ошибка при обработке термина '{term}': {e}")
         finally:
@@ -116,7 +120,7 @@ def main():
 
     logger.info("Бот запущен и готов к работе.")
 
-    # Запускаем рабочих процессов
+    # Запускаем рабочие процессы
     loop = asyncio.get_event_loop()
     loop.create_task(start_workers())
 
