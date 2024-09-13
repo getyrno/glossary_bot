@@ -1,6 +1,7 @@
 import os
 import logging
-from telegram import Bot
+from aiogram import Bot, Dispatcher, types
+from aiogram.utils import executor
 from dotenv import load_dotenv
 
 # Загрузка переменных окружения
@@ -15,13 +16,16 @@ CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 
 # Инициализация бота
 bot = Bot(token=TOKEN)
+dp = Dispatcher(bot)
 
-def send_message(text):
+async def send_message(text):
     try:
-        bot.send_message(chat_id=CHAT_ID, text=text)
+        await bot.send_message(chat_id=CHAT_ID, text=text)
         logging.info(f"Сообщение успешно отправлено: {text}")
     except Exception as e:
         logging.error(f"Ошибка при отправке сообщения: {e}")
 
 if __name__ == "__main__":
-    send_message("Тестовое сообщение для проверки")
+    # Тестовая отправка
+    import asyncio
+    asyncio.run(send_message("Тестовое сообщение для проверки"))
