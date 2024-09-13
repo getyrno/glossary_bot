@@ -66,3 +66,4 @@ magic-filter==1.0.12
 multidict==6.1.0 
 pydantic==2.8.2 
 pydantic-core==2.20.1 
+arl==1.11.1
