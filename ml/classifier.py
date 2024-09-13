@@ -10,20 +10,7 @@ translator = GoogleTranslator(source='auto', target='en')
 logging.basicConfig(level=logging.DEBUG)
 
 def classify_term_context(term, definition):
-    """
-    Классифицируем контекст термина с переводом на английский язык.
-    
-    :param term: Сам термин.
-    :param definition: Описание или определение термина.
-    :return: Предсказанный контекст.
-    """
-    # Переводим термин и определение на английский язык
-    term_en = translator.translate(term)
-    definition_en = translator.translate(definition)
-    
-    # Объединяем переведенный текст для модели
-    # text = f"Term: {term_en}. Definition: {definition_en}"
-    
+
     # Расширенные контексты для классификации
     candidate_labels = [
     "математика", "программирование", "биология", "экономика", "физика",
