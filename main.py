@@ -93,11 +93,12 @@ def main():
     application.add_handler(CommandHandler('start', start))
     application.add_handler(CommandHandler('set_language', set_language))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+
+
+    logger.info("Бот запущен и готов к работе.")
     logger.info(f"TOKEN: {TOKEN}")
     logger.info(f"TOKEN2: {TOKEN2}")
     logger.info(f"CHAT_ID: {CHAT_ID}")
-
-    logger.info("Бот запущен и готов к работе.")
     application.run_polling()
 
 if __name__ == '__main__':
