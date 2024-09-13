@@ -32,7 +32,13 @@ CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 if not TOKEN:
     logger.error("TELEGRAM_BOT_TOKEN не установлен в переменных окружения.")
     exit(1)
-
+if not TOKEN:
+    logger.error("TELEGRAM_BOT_TOKEN2 не установлен в переменных окружения.")
+    exit(1)
+if not CHAT_ID:
+    logger.error("TELEGRAM_CHAT_ID не установлен в переменных окружения.")
+    exit(1)
+    
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     Обработчик команды /start.
@@ -93,13 +99,7 @@ def main():
     application.add_handler(CommandHandler('start', start))
     application.add_handler(CommandHandler('set_language', set_language))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-
-
     logger.info("Бот запущен и готов к работе.")
-    logger.info(f"TOKEN: {TOKEN}")
-    logger.info(f"TOKEN2: {TOKEN2}")
-
-    logger.info(f"CHAT_ID: {CHAT_ID}")
     application.run_polling()
 
 if __name__ == '__main__':
