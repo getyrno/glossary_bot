@@ -62,4 +62,4 @@ def train_and_notify(term, definition):
         logging.info(f"Отчет успешно отправлен для термина '{term}'")
     except Exception as e:
         logging.error(f"Ошибка при отправке отчета для термина '{term}': {e}")
- 
+  
