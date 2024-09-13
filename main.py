@@ -3,21 +3,30 @@ import asyncio
 import os
 from telegram import Update
 from telegram.constants import ParseMode
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, MessageHandler, filters
+from telegram.ext import (
+    ApplicationBuilder,
+    CommandHandler,
+    ContextTypes,
+    MessageHandler,
+    filters
+)
 from ml.train_model import train_and_notify
 from search import find_best_match
 from dotenv import load_dotenv
 from telegram.helpers import escape_markdown
 from concurrent.futures import ThreadPoolExecutor
 
+# Загрузка переменных окружения
 load_dotenv()
 
+# Настройка логирования
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
 logger = logging.getLogger(__name__)
 
+# Получение токена и ID чата из переменных окружения
 TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 if not TOKEN:
@@ -27,11 +36,8 @@ if not CHAT_ID:
     logger.error("TELEGRAM_CHAT_ID не установлен в переменных окружения.")
     exit(1)
 
-# Очередь для задач
-task_queue = asyncio.Queue()
-
-# Экзекьютор для фоновых задач (чтобы не блокировать основной поток)
-executor = ThreadPoolExecutor(max_workers=4)
+# Экзекьютор для фоновых задач (уменьшаем количество потоков для снижения нагрузки)
+executor = ThreadPoolExecutor(max_workers=2)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
@@ -45,7 +51,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
-    Обработчик входящих сообщений. Добавляет запросы в очередь.
+    Обработчик входящих сообщений. Добавляет запросы для фона.
     """
     user = update.effective_user
     query = update.message.text.strip()
@@ -71,26 +77,23 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         await update.message.reply_text(response, parse_mode=ParseMode.MARKDOWN_V2)
         
-        # Добавляем задачу для фона
-        await task_queue.put((term_escaped, definition_escaped))
+        # Добавляем задачу для фона без ожидания завершения
+        asyncio.create_task(process_task(term_escaped, definition_escaped))
         
         logger.info(f"Задача для термина '{term}' добавлена в очередь.")
     except Exception as e:
         logger.error(f"Ошибка при отправке сообщения: {e}")
 
-async def worker():
+async def process_task(term, definition):
     """
-    Рабочий процесс для обработки задач из очереди. Будет работать асинхронно в фоне.
+    Обрабатывает задачу в фоновом режиме.
     """
-    while True:
-        term, definition = await task_queue.get()
-        try:
-            # Асинхронно выполняем train_and_notify в отдельном потоке через executor
-            await asyncio.get_event_loop().run_in_executor(executor, train_and_notify, term, definition)
-        except Exception as e:
-            logger.error(f"Ошибка при обработке термина '{term}': {e}")
-        finally:
-            task_queue.task_done()
+    try:
+        loop = asyncio.get_event_loop()
+        await loop.run_in_executor(executor, train_and_notify, term, definition)
+        logger.info(f"Функция train_and_notify завершена для термина '{term}'.")
+    except Exception as e:
+        logger.error(f"Ошибка при обработке термина '{term}': {e}")
 
 async def set_language(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
@@ -98,14 +101,6 @@ async def set_language(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     await update.message.reply_text("Функция смены языка пока не реализована.")
     logger.info(f"Пользователь {update.effective_user.id} попытался изменить язык.")
-
-async def start_workers(n=3):
-    """
-    Функция для запуска нескольких рабочих процессов (workers) для обработки очереди.
-    """
-    for i in range(n):
-        logger.info(f"Запуск рабочего процесса {i + 1}")
-        asyncio.create_task(worker())
 
 def main():
     """
@@ -119,10 +114,6 @@ def main():
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
     logger.info("Бот запущен и готов к работе.")
-
-    # Запускаем рабочие процессы
-    loop = asyncio.get_event_loop()
-    loop.create_task(start_workers())
 
     # Запускаем основное приложение для обработки событий Telegram
     application.run_polling()
