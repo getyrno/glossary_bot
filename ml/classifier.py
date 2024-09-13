@@ -19,7 +19,7 @@ console_handler.setFormatter(formatter)
 logger.addHandler(console_handler)
 
 # Модель классификации (можно убрать, если не нужна)
-classifier = pipeline("zero-shot-classification", model="typeform/distilbert-base-multilingual-cased-mnli")
+classifier = pipeline("zero-shot-classification", model="facebook/bart-large-mnli")
 
 # Переводчик
 translator = GoogleTranslator(source='auto', target='en')
