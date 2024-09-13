@@ -11,3 +11,9 @@ services:
       - .env
     ports:
       - "8080:8000"
+    networks:
+      default:
+        driver: bridge
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4

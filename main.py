@@ -42,7 +42,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     logger.info(f"Пользователь {user.id} начал взаимодействие с ботом.")
 
-def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     Обработчик текстовых сообщений.
     """
@@ -51,10 +51,10 @@ def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     logger.info(f"Пользователь {user.id} отправил сообщение: {query}")
 
     if not query:
-        update.message.reply_text("Пожалуйста, введите корректный термин для поиска.")
+        await update.message.reply_text("Пожалуйста, введите корректный термин для поиска.")
         return
 
-    term, definition = find_best_match(query, language='ru')  # Предполагается, что язык русский
+    term, definition = await find_best_match(query, language='ru')  # Предполагается, что язык русский
     if definition:
         # Экранируем специальные символы для MarkdownV2
         term_escaped = escape_markdown(term.capitalize(), version=2)
@@ -69,7 +69,7 @@ def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         response = "Термин не найден. Попробуйте другой запрос."
 
     try:
-        update.message.reply_text(response, parse_mode=ParseMode.MARKDOWN_V2)
+        await update.message.reply_text(response, parse_mode=ParseMode.MARKDOWN_V2)
         logger.info(f"Отправлен ответ пользователю {user.id}: {response}")
     except Exception as e:
         logger.error(f"Ошибка при отправке сообщения: {e}")
