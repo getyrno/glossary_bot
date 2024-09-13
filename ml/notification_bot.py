@@ -38,3 +38,4 @@ def send_message(text):
         logging.error(f"Ошибка при отправке сообщения: {e}")
         if response is not None:
             logging.error(f"Ответ от Telegram: {response.text}")
+ 
