@@ -69,7 +69,10 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     try:
         await update.message.reply_text(response, parse_mode=ParseMode.MARKDOWN_V2)
-        train_and_notify(term_escaped, definition_escaped)
+        
+        loop = asyncio.get_event_loop()
+        await loop.run_in_executor(None, train_and_notify, term_escaped, definition_escaped)
+
         logger.info(f"Отправлен ответ пользователю {user.id}: {response}")
     except Exception as e:
         logger.error(f"Ошибка при отправке сообщения: {e}")
