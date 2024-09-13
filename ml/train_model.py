@@ -10,16 +10,16 @@ import pandas as pd
 
 logging.basicConfig(level=logging.INFO)
 
-def train_and_notify(term, definition):
+def train_and_notify(term, definition,elapsed_time):
      with ThreadPoolExecutor(max_workers=1) as executor:
-        future = executor.submit(process_term, term, definition)
+        future = executor.submit(process_term, term, definition, elapsed_time)
         try:
             future.result()  # Дожидаемся завершения выполнения
         except Exception as exc:
             logging.error(f'Обработка термина "{term}" вызвала исключение: {exc}')
 
 
-def process_term(term, definition):
+def process_term(term, definition, elapsed_time):
     logging.info(f"Начинается обработка термина '{term}'")
 
     processed_term = preprocess_term(term)
@@ -29,13 +29,13 @@ def process_term(term, definition):
     term_vectors = vectorize_terms(terms)
     logging.info(f"Векторизация завершена для термина: {processed_term}")
 
-    try:
-        context = classify_term_context(processed_term, definition)
-        logging.info(f"Контекст для термина '{term}' определен как: {context}")
-    except Exception as e:
-        logging.error(f"Ошибка при классификации термина '{term}': {e}")
-        send_message(f"Ошибка классификации термина '{term}': {e}")
-        return
+    # try:
+    #     # context = classify_term_context(processed_term, definition)
+    #     # logging.info(f"Контекст для термина '{term}' определен как: {context}")
+    # except Exception as e:
+    #     logging.error(f"Ошибка при классификации термина '{term}': {e}")
+    #     send_message(f"Ошибка классификации термина '{term}': {e}")
+    #     return
 
     # Генерация определения (временно закомментирована)
     # try:
@@ -52,8 +52,10 @@ def process_term(term, definition):
     # logging.info(f"Рекомендованные термины для '{term}': {recommended_terms}")
 
     report = (f"Термин: {term}\n"
-              f"Предсказанный контекст: {context}\n"
-              f"Сгенерированное определение: В разработке")
+              f"Предсказанный контекст: В разработке\n"
+              f"Сгенерированное определение: В разработке\n"
+              f"Отправленное определение: {definition}\n"
+              f"Время от получения сообщения до отправки ответа: {elapsed_time:.2f} секунд")
     
     try:
         send_message(report)

@@ -1,6 +1,7 @@
 import logging
 import asyncio
 import os
+import time  # Для измерения времени
 from telegram import Update
 from telegram.constants import ParseMode
 from telegram.ext import (
@@ -53,6 +54,9 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     Обработчик входящих сообщений. Добавляет запросы для фона.
     """
+    # Начинаем отслеживать время выполнения задачи
+    start_time = time.time()
+
     user = update.effective_user
     query = update.message.text.strip()
     logger.info(f"Пользователь {user.id} отправил сообщение: {query}")
@@ -67,7 +71,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         term_escaped = escape_markdown(term.capitalize(), version=2)
         definition_escaped = escape_markdown(definition, version=2)
         
-        logger.info(f"Найдено определение для термина '{term}': {definition}. Добавление задачи в очередь.")
+        logger.info(f"Найдено определение для термина '{term}': {definition}.")
         
         response = f"*{term_escaped}*\n{definition_escaped}"
     else:
@@ -77,21 +81,28 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         await update.message.reply_text(response, parse_mode=ParseMode.MARKDOWN_V2)
         
-        # Добавляем задачу для фона без ожидания завершения
-        asyncio.create_task(process_task(term_escaped, definition_escaped))
+        # Завершаем измерение времени
+        elapsed_time = time.time() - start_time
+        logger.info(f"Ответ отправлен пользователю за {elapsed_time:.2f} секунд.")
+
+        # Логируем время выполнения
+        logger.info(f"Время от получения сообщения до отправки ответа: {elapsed_time:.2f} секунд")
         
-        logger.info(f"Задача для термина '{term}' добавлена в очередь.")
+        # Добавляем задачу для фона без ожидания завершения
+        asyncio.create_task(process_task(term_escaped, definition_escaped, elapsed_time))
+        
     except Exception as e:
         logger.error(f"Ошибка при отправке сообщения: {e}")
 
-async def process_task(term, definition):
+async def process_task(term, definition, elapsed_time):
     """
-    Обрабатывает задачу в фоновом режиме.
+    Обрабатывает задачу в фоновом режиме и передаёт время выполнения в train_and_notify.
     """
     try:
         loop = asyncio.get_event_loop()
-        await loop.run_in_executor(executor, train_and_notify, term, definition)
+        await loop.run_in_executor(executor, train_and_notify, term, definition, elapsed_time)
         logger.info(f"Функция train_and_notify завершена для термина '{term}'.")
+        
     except Exception as e:
         logger.error(f"Ошибка при обработке термина '{term}': {e}")
 
