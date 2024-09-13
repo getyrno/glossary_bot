@@ -1,11 +1,13 @@
 from deep_translator import GoogleTranslator
 from transformers import pipeline
+import logging
 
 # Инициализация модели классификации
 classifier = pipeline("zero-shot-classification", model="joeddav/xlm-roberta-large-xnli")
 
 # Инициализация переводчика
 translator = GoogleTranslator(source='auto', target='en')
+logging.basicConfig(level=logging.DEBUG)
 
 def classify_term_context(term, definition):
     """
@@ -41,7 +43,7 @@ def classify_term_context(term, definition):
     
     # Печатаем все метрики
     for label, score in all_metrics:
-        print(f"Метка: {label}, Вероятность: {score:.4f}")
+        logging.info(f"Метка: {label}, Вероятность: {score:.4f}")
     best_label = result['labels'][0]
     best_score = result['scores'][0]
     
