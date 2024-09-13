@@ -6,12 +6,12 @@ from ml.generate_definition import generate_definition_gpt2
 from ml.notification_bot import send_message
 from ml.analysis import analyze_term_searches, visualize_recommendations
 import pandas as pd
-
+import asyncio  # Необходимо для ожидания асинхронных задач
 
 logging.basicConfig(level=logging.INFO)
 
-def train_and_notify(term, definition,elapsed_time):
-     with ThreadPoolExecutor(max_workers=1) as executor:
+def train_and_notify(term, definition, elapsed_time):
+    with ThreadPoolExecutor(max_workers=1) as executor:
         future = executor.submit(process_term, term, definition, elapsed_time)
         try:
             future.result()  # Дожидаемся завершения выполнения
@@ -30,7 +30,10 @@ def process_term(term, definition, elapsed_time):
     logging.info(f"Векторизация завершена для термина: {processed_term}")
 
     try:
-        context = classify_term_context_async(processed_term, definition)
+        # Ожидаем асинхронный результат с помощью asyncio.run()
+        loop = asyncio.get_event_loop()
+        context = loop.run_until_complete(classify_term_context_async(processed_term, definition))
+        
         logging.info(f"Контекст для термина '{term}' определен как: {context}")
     except Exception as e:
         logging.error(f"Ошибка при классификации термина '{term}': {e}")
