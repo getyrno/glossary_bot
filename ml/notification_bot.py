@@ -3,17 +3,13 @@ import requests
 import logging
 from dotenv import load_dotenv
 
-# Загрузка переменных окружения из файла .env
 load_dotenv()
 
-# Настройка логирования
 logging.basicConfig(level=logging.INFO)
 
-# Получение токена и chat_id из переменных окружения
 TOKEN = os.getenv('TELEGRAM_BOT_TOKEN2')
 CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 
-# Проверка значений
 logging.info(f"TOKEN: {TOKEN}")
 logging.info(f"CHAT_ID: {CHAT_ID}")
 
@@ -28,7 +24,7 @@ def send_message(text):
         'text': text
     }
 
-    response = None  # Инициализация переменной
+    response = None
 
     try:
         response = requests.post(url, data=payload)

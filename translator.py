@@ -1,9 +1,7 @@
 #translator
 from deep_translator import GoogleTranslator
-# Создаем объект для перевода
 translator = GoogleTranslator()
 
-# Поддерживаемые языки
 LANGUAGES = {
     'ru': 'Русский',
     'en': 'Английский',
@@ -16,7 +14,6 @@ LANGUAGES = {
     'ko': 'Корейский',
 }
 
-# Сообщения об ошибках на разных языках
 ERROR_MESSAGES = {
     'unsupported_language': {
         'en': "Language {language} is not supported. Please choose one of the supported languages: {supported}.",
@@ -36,25 +33,18 @@ ERROR_MESSAGES = {
     }
 }
 
-# Функция для получения сообщения об ошибке на выбранном языке
 def get_error_message(error_type, user_language, **kwargs):
-    # Если язык пользователя не поддерживается, используем английский по умолчанию
     if user_language not in ERROR_MESSAGES[error_type]:
         user_language = 'en'
     return ERROR_MESSAGES[error_type][user_language].format(**kwargs)
 
-# Функция для перевода текста на указанный язык
-# Пример синхронного вызова
 def translate(text, target_language, user_language):
-    # Проверяем, поддерживается ли целевой язык
     if target_language not in LANGUAGES:
         supported_languages = ', '.join(LANGUAGES.keys())
         return get_error_message('unsupported_language', user_language, language=target_language, supported=supported_languages)
 
     try:
-        # Выполняем перевод
         translation = translator.translate(text, dest=target_language)
-        return translation.text  # Возвращаем текст перевода
+        return translation.text
     except Exception as e:
-        # В случае ошибки возвращаем сообщение об ошибке
         return get_error_message('translation_error', user_language, error=str(e))

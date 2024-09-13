@@ -15,17 +15,14 @@ from search import find_best_match, save_user_definition
 from dotenv import load_dotenv
 from telegram.helpers import escape_markdown
 
-# Загрузка переменных окружения из .env файла
 load_dotenv()
 
-# Настройка логирования
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
 logger = logging.getLogger(__name__)
 
-# Получение токена из переменных окружения
 TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 TOKEN2 = os.getenv('TELEGRAM_BOT_TOKEN2')
 CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
@@ -50,9 +47,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     logger.info(f"Пользователь {user.id} начал взаимодействие с ботом.")
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """
-    Обработчик текстовых сообщений.
-    """
     user = update.effective_user
     query = update.message.text.strip()
     logger.info(f"Пользователь {user.id} отправил сообщение: {query}")
@@ -63,7 +57,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     term, definition = await find_best_match(query, language='ru')  # Предполагается, что язык русский
     if definition:
-        # Экранируем специальные символы для MarkdownV2
         term_escaped = escape_markdown(term.capitalize(), version=2)
         definition_escaped = escape_markdown(definition, version=2)
         
@@ -82,20 +75,11 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         logger.error(f"Ошибка при отправке сообщения: {e}")
 
 async def set_language(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """
-    Обработчик команды /set_language для изменения языка поиска.
-    """
-    # Реализация смены языка по вашему усмотрению
     await update.message.reply_text("Функция смены языка пока не реализована.")
     logger.info(f"Пользователь {update.effective_user.id} попытался изменить язык.")
 
 def main():
-    """
-    Основная функция для запуска бота.
-    """
     application = ApplicationBuilder().token(TOKEN).build()
-
-    # Добавляем обработчики команд и сообщений
     application.add_handler(CommandHandler('start', start))
     application.add_handler(CommandHandler('set_language', set_language))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))

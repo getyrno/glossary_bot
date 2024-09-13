@@ -2,8 +2,7 @@ import torch
 import datetime
 import os
 from transformers import GPT2Tokenizer, GPT2LMHeadModel, MarianMTModel, MarianTokenizer
-
-# Класс для форматирования текста
+from ..utils import translate
 class bcolors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -15,26 +14,12 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
-# Функция подсчета времени генерации
 def calcTime(time):
     return bcolors.OKGREEN + str((datetime.datetime.now() - time).total_seconds()) + bcolors.ENDC
 
-# Загрузка токенизатора и модели напрямую из Hugging Face Hub
-model_name_t5 = "t5-large"  # Замените на нужный идентификатор модели T5
-model_name_gpt2 = "gpt2"    # Замените на нужный идентификатор модели GPT-2
-model_name_translation = "Helsinki-NLP/opus-mt-en-ru"
+model_name_t5 = "t5-large"
+model_name_gpt2 = "gpt2"
 device = "cuda" if torch.cuda.is_available() else "cpu"
-
-t = datetime.datetime.now()
-print('Загрузка модели Marian...')
-tokenizer_translation = MarianTokenizer.from_pretrained(model_name_translation)
-print('Модель Marian загружен! Время:' + calcTime(t))
-
-t = datetime.datetime.now()
-print('Загрузка токенизатора Marian...')
-model_translation = MarianMTModel.from_pretrained(model_name_translation)
-print('Токенизатор Marian загружен! Время:' + calcTime(t))
-
 
 t = datetime.datetime.now()
 print('Загрузка токенизатора GPT-2...')
@@ -47,9 +32,7 @@ model_gpt2 = GPT2LMHeadModel.from_pretrained(model_name_gpt2)
 model_gpt2.to(device)
 print('Модель GPT-2 загружена! Время:' + calcTime(t))
 
-# Функция генерации определения термина с использованием модели GPT-2
 def generate_definition_gpt2(term, p={
-        # Настройки модели
         "do_sample": True,
         "top_p": 0.9,
         "temperature": 0.15,
@@ -62,7 +45,6 @@ def generate_definition_gpt2(term, p={
     inp = f'Generate a definition for: {term}'
     input_ids = tokenizer_gpt2.encode(inp, return_tensors='pt').to(device)
     
-    # Генерация
     outputs = model_gpt2.generate(
         input_ids,
         do_sample=p["do_sample"],
@@ -74,21 +56,14 @@ def generate_definition_gpt2(term, p={
         early_stopping=True
     )
     
-    # Декодирование
     if len(outputs) > 0:
         lastTokensUsed = len(outputs[0])
     print(calcTime(t) + ' - время просчета, токенов в ответе -', lastTokensUsed, '\n')
-    translated_text = translate_text(tokenizer_gpt2.decode(outputs[0][1 + p["tokens_offset"]:], skip_special_tokens=True),model_translation, tokenizer_translation)
+    translated_text = translate_text(tokenizer_gpt2.decode(outputs[0][1 + p["tokens_offset"]:], skip_special_tokens=True))
     return translated_text
 
-def translate_text(text, model, tokenizer):
+def translate_text(text):
     start_time = datetime.datetime.now()
-    input_ids = tokenizer.encode(text, return_tensors='pt').to(device)
-    
-    # Перевод
-    outputs = model.generate(input_ids, max_length=100)
-    
-    # Декодирование
-    translation = tokenizer.decode(outputs[0], skip_special_tokens=True)
+    translation = translate(text, 'en', 'ru')
     print(calcTime(start_time) + ' - время перевода\n')
     return translation

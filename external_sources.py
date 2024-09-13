@@ -6,7 +6,6 @@ from urllib.parse import quote
 
 logger = logging.getLogger(__name__)
 
-# Добавим пользовательский User-Agent
 HEADERS = {
     'User-Agent': 'TelegramBot/1.0 (https://github.com/yourusername/yourbot)'
 }
@@ -24,10 +23,8 @@ async def fetch_from_wikipedia(term: str, language: str = 'en') -> str:
             if extract:
                 return extract
             else:
-                # Если нет прямого совпадения, попробуем поиск
                 return await search_wikipedia(term, language)
         elif response.status_code == 404:
-            # Если страница не найдена, попробуем поиск
             return await search_wikipedia(term, language)
         else:
             logger.error(f'Wikipedia API вернул статус {response.status_code} для термина "{term}"')
@@ -52,7 +49,6 @@ async def search_wikipedia(term: str, language: str = 'en') -> str:
             data = response.json()
             search_results = data.get('query', {}).get('search', [])
             if search_results:
-                # Берём первый результат
                 first_result_title = search_results[0]['title']
                 return await fetch_from_wikipedia(first_result_title, language)
             else:
@@ -73,11 +69,9 @@ async def fetch_from_wiktionary(term: str, language: str = 'en') -> str:
         
         if response.status_code == 200:
             data = response.json()
-            # Wiktionary возвращает данные в зависимости от языка и части речи
             for definitions in data.values():
                 for entry in definitions:
                     if 'definitions' in entry and entry['definitions']:
-                        # Возьмём первое определение
                         return entry['definitions'][0]['definition']
             return None
         else:
@@ -106,7 +100,6 @@ async def fetch_from_duckduckgo(term: str, language: str = 'en') -> str:
             if abstract:
                 return abstract
             elif data.get('RelatedTopics'):
-                # Иногда информация находится в RelatedTopics
                 for topic in data['RelatedTopics']:
                     if 'Text' in topic:
                         return topic['Text']
@@ -126,20 +119,16 @@ async def fetch_from_other_sources(term: str, language: str = 'en') -> str:
     :param language: Язык поиска.
     :return: Определение термина или None, если не найдено.
     """
-    # Попробуем получить определение из Википедии
     definition = await fetch_from_wikipedia(term, language)
     if definition:
         return definition
 
-    # Попробуем получить определение из Викисловаря
     definition = await fetch_from_wiktionary(term, language)
     if definition:
         return definition
 
-    # Попробуем получить определение из DuckDuckGo
     definition = await fetch_from_duckduckgo(term, language)
     if definition:
         return definition
 
-    # Можно добавить другие источники здесь
     return None

@@ -4,18 +4,14 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from deep_translator import GoogleTranslator
 import logging
 from telegram.helpers import escape_markdown
-
-# Настройка логирования
 logger = logging.getLogger(__name__)
 
-# Поддерживаемые языки
 LANGUAGES = {
     'ru': 'Русский',
     'en': 'English',
     'zh-cn': '中文（简体）',
 }
 
-# Сообщения об ошибках
 ERROR_MESSAGES = {
     'unsupported_language': {
         'en': "Language '{language}' is not supported. Please choose one of the supported languages: {supported}.",
@@ -44,7 +40,6 @@ def get_error_message(error_type: str, user_language: str, **kwargs) -> str:
         return "An unknown error occurred."
     
     user_language = user_language if user_language in ERROR_MESSAGES[error_type] else 'en'
-    # Экранируем пользовательский ввод
     for key, value in kwargs.items():
         if isinstance(value, str):
             kwargs[key] = escape_markdown(value, version=2)
@@ -62,12 +57,11 @@ def translate(text: str, target_language: str, source_language: str = 'en') -> s
     if target_language not in LANGUAGES:
         supported_languages = ', '.join(LANGUAGES.keys())
         logger.error(f"Unsupported language: {target_language}")
-        return text  # Возвращаем исходный текст, если язык не поддерживается
+        return text
 
     try:
         translator = GoogleTranslator(source=source_language, target=target_language)
         return translator.translate(text)
     except Exception as e:
         logger.error(f"Translation error: {e}")
-        # Возвращаем исходный текст при ошибке
         return text

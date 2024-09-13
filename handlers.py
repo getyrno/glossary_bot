@@ -11,17 +11,15 @@ from messages import GREETING_MESSAGE, MAIN_MESSAGE, LANGUAGES
 
 logger = logging.getLogger(__name__)
 
-# Состояния для ConversationHandler
 WAITING_FOR_DEFINITION = 1
 
-# Управление языковыми предпочтениями
 user_language_preferences = {}
 
 async def start(update: Update, context: CallbackContext):
     user_id = update.message.from_user.id
     try:
         if user_id not in user_language_preferences:
-            user_language_preferences[user_id] = 'en'  # Язык по умолчанию
+            user_language_preferences[user_id] = 'en'
             await update.message.reply_text(
                 GREETING_MESSAGE['en'],
                 reply_markup=get_language_keyboard()
@@ -81,18 +79,12 @@ async def find_term(update: Update, context: CallbackContext):
     preferred_language = user_language_preferences.get(user_id, 'en')
 
     try:
-        # Переводим запрос на английский для поиска
         translated_query = translate(query, 'en', preferred_language)
-
-        # Ищем термин и получаем описание
         term, description = await find_best_match(translated_query, language='en')
 
         if term and description:
-            # Переводим термин и описание на предпочтительный язык
             translated_term = translate(term, preferred_language, 'en')
             translated_description = translate(description, preferred_language, 'en')
-
-            # Экранируем специальные символы
             translated_term = escape_markdown(translated_term, version=2)
             translated_description = escape_markdown(translated_description, version=2)
 
@@ -102,7 +94,6 @@ async def find_term(update: Update, context: CallbackContext):
             response = get_error_message('term_not_found', preferred_language, term=query)
             response += "\nWould you like to provide a definition for this term? (yes/no)"
             await update.message.reply_text(response)
-            # Сохраняем состояние ожидания определения
             context.user_data['awaiting_definition'] = True
             context.user_data['term_to_define'] = query
             return WAITING_FOR_DEFINITION
@@ -148,7 +139,6 @@ async def save_definition(update: Update, context: CallbackContext):
         response = get_error_message('general_error', preferred_language, error=str(e))
         await update.message.reply_text(response)
 
-    # Очистка состояния
     context.user_data['awaiting_definition'] = False
     context.user_data.pop('term_to_define', None)
     return ConversationHandler.END
