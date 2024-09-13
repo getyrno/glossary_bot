@@ -1,5 +1,3 @@
-# main.py
-
 import logging
 import asyncio
 import os
@@ -61,7 +59,10 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # Экранируем специальные символы для MarkdownV2
         term_escaped = escape_markdown(term.capitalize(), version=2)
         definition_escaped = escape_markdown(definition, version=2)
+        
+        logger.info(f"Найдено определение для термина '{term}': {definition}. Начинается вызов train_and_notify.")
         train_and_notify(term_escaped, definition_escaped)
+        logger.info(f"Функция train_and_notify завершена для термина '{term_escaped}'.")
 
         response = f"*{term_escaped}*\n{definition_escaped}"
     else:
