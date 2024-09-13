@@ -86,7 +86,7 @@ async def worker():
         term, definition = await task_queue.get()
         try:
             # Асинхронно выполняем train_and_notify в отдельном потоке через executor
-            await asyncio.get_event_loop().run_in_executor(executor, train_and_notify, [(term, definition)])
+            await asyncio.get_event_loop().run_in_executor(executor, train_and_notify, term, definition)
         except Exception as e:
             logger.error(f"Ошибка при обработке термина '{term}': {e}")
         finally:
