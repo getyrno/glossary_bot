@@ -1,6 +1,6 @@
 import logging
-from classifier import classify_term_context
-from notification_bot import send_message
+from .classifier import classify_term_context
+from .notification_bot import send_message
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
