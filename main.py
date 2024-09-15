@@ -1,7 +1,7 @@
 import logging
 import asyncio
 import os
-import time  # Для измерения времени
+import time
 from telegram import Update
 from telegram.constants import ParseMode
 from telegram.ext import (
@@ -17,17 +17,14 @@ from dotenv import load_dotenv
 from telegram.helpers import escape_markdown
 from concurrent.futures import ThreadPoolExecutor
 
-# Загрузка переменных окружения
 load_dotenv()
 
-# Настройка логирования
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
 logger = logging.getLogger(__name__)
 
-# Получение токена и ID чата из переменных окружения
 TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 if not TOKEN:
@@ -37,7 +34,6 @@ if not CHAT_ID:
     logger.error("TELEGRAM_CHAT_ID не установлен в переменных окружения.")
     exit(1)
 
-# Экзекьютор для фоновых задач (уменьшаем количество потоков для снижения нагрузки)
 executor = ThreadPoolExecutor(max_workers=2)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -54,7 +50,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     Обработчик входящих сообщений. Добавляет запросы для фона.
     """
-    # Начинаем отслеживать время выполнения задачи
     start_time = time.time()
 
     user = update.effective_user
@@ -65,7 +60,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Пожалуйста, введите корректный термин для поиска.")
         return
 
-    # Поиск термина и его определения
     term, definition = await find_best_match(query, language='ru')
     if definition:
         term_escaped = escape_markdown(term.capitalize(), version=2)
@@ -77,18 +71,14 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         response = "Термин не найден. Попробуйте другой запрос."
 
-    # Отправка ответа пользователю
     try:
         await update.message.reply_text(response, parse_mode=ParseMode.MARKDOWN_V2)
         
-        # Завершаем измерение времени
         elapsed_time = time.time() - start_time
         logger.info(f"Ответ отправлен пользователю за {elapsed_time:.2f} секунд.")
 
-        # Логируем время выполнения
         logger.info(f"Время от получения сообщения до отправки ответа: {elapsed_time:.2f} секунд")
         
-        # Добавляем задачу для фона без ожидания завершения
         asyncio.create_task(process_task(term_escaped, definition_escaped, elapsed_time))
         
     except Exception as e:
@@ -119,14 +109,12 @@ def main():
     """
     application = ApplicationBuilder().token(TOKEN).build()
     
-    # Добавляем обработчики команд и сообщений
     application.add_handler(CommandHandler('start', start))
     application.add_handler(CommandHandler('set_language', set_language))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
     logger.info("Бот запущен и готов к работе.")
 
-    # Запускаем основное приложение для обработки событий Telegram
     application.run_polling()
 
 if __name__ == '__main__':

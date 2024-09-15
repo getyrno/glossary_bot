@@ -6,7 +6,7 @@ from ml.generate_definition import generate_definition_gpt2
 from ml.notification_bot import send_message
 from ml.analysis import analyze_term_searches, visualize_recommendations
 import pandas as pd
-import asyncio  # Необходимо для ожидания асинхронных задач
+import asyncio
 
 logging.basicConfig(level=logging.INFO)
 
@@ -14,7 +14,7 @@ def train_and_notify(term, definition, elapsed_time):
     with ThreadPoolExecutor(max_workers=1) as executor:
         future = executor.submit(process_term, term, definition, elapsed_time)
         try:
-            future.result()  # Дожидаемся завершения выполнения
+            future.result()
         except Exception as exc:
             logging.error(f'Обработка термина "{term}" вызвала исключение: {exc}')
 
@@ -29,16 +29,15 @@ def process_term(term, definition, elapsed_time):
     term_vectors = vectorize_terms(terms)
     logging.info(f"Векторизация завершена для термина: {processed_term}")
 
-    # try:
-    #     # Ожидаем асинхронный результат с помощью asyncio.run()
-    #     loop = asyncio.get_event_loop()
-    #     context = loop.run_until_complete(classify_term_context_async(processed_term, definition))
+    try:
+        loop = asyncio.get_event_loop()
+        context = loop.run_until_complete(classify_term_context_async(processed_term, definition))
         
-    #     logging.info(f"Контекст для термина '{term}' определен как: {context}")
-    # except Exception as e:
-    #     logging.error(f"Ошибка при классификации термина '{term}': {e}")
-    #     send_message(f"Ошибка классификации термина '{term}': {e}")
-    #     return
+        logging.info(f"Контекст для термина '{term}' определен как: {context}")
+    except Exception as e:
+        logging.error(f"Ошибка при классификации термина '{term}': {e}")
+        send_message(f"Ошибка классификации термина '{term}': {e}")
+        return
 
     # Генерация определения (временно закомментирована)
     # try:
@@ -55,7 +54,7 @@ def process_term(term, definition, elapsed_time):
     # logging.info(f"Рекомендованные термины для '{term}': {recommended_terms}")
 
     report = (f"Термин: {term}\n"
-              f"Предсказанный контекст: В разработке\n"
+              f"Предсказанный контекст: {context}\n"
               f"Сгенерированное определение: В разработке\n"
               f"Отправленное определение: {definition}\n"
               f"Время от получения сообщения до отправки ответа: {elapsed_time:.2f} секунд")

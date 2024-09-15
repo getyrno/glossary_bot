@@ -1,3 +1,4 @@
+# ml/classifier 
 import logging
 import asyncio
 import os
@@ -5,7 +6,7 @@ import time
 from deep_translator import GoogleTranslator
 from transformers import pipeline
 from functools import lru_cache
-import psutil  # Для мониторинга загрузки CPU
+import psutil
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -17,15 +18,10 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levellevel)s - %(messa
 console_handler.setFormatter(formatter)
 
 logger.addHandler(console_handler)
-
-# Модель классификации
 classifier = pipeline("zero-shot-classification", model="facebook/bart-large-mnli")
-
-# Переводчик
 translator = GoogleTranslator(source='auto', target='en')
 
-# Кэширование результатов
-@lru_cache(maxsize=1000)  # Кэшируем до 1000 последних запросов
+@lru_cache(maxsize=1000)
 def classify_term_context(term, definition):
     logger.info("Начало функции классификации")
 
@@ -76,9 +72,7 @@ def classify_term_context(term, definition):
     logger.info("Конец функции классификации")
     return f"{best_label}: {best_score:.4f}"
 
-# Асинхронный вызов для интеграции с другими функциями
 async def classify_term_context_async(term, definition):
-    # Получаем текущую загрузку CPU
     cpu_load = psutil.cpu_percent(interval=1)
     logger.info(f"Текущая загрузка CPU: {cpu_load}%")
     
@@ -87,7 +81,6 @@ async def classify_term_context_async(term, definition):
     result = await loop.run_in_executor(None, classify_term_context, term, definition)
     return result
 
-# Функция для кэширования задач
 @lru_cache(maxsize=1000)
 async def cache_task(term, definition):
     logger.info(f"Сохраняем в кэш: {term}")

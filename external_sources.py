@@ -112,13 +112,6 @@ async def fetch_from_duckduckgo(term: str, language: str = 'en') -> str:
         return None
 
 async def fetch_from_other_sources(term: str, language: str = 'en') -> str:
-    """
-    Попытка получить определение термина из нескольких источников.
-    
-    :param term: Термин для поиска.
-    :param language: Язык поиска.
-    :return: Определение термина или None, если не найдено.
-    """
     definition = await fetch_from_wikipedia(term, language)
     if definition:
         return definition
@@ -130,5 +123,6 @@ async def fetch_from_other_sources(term: str, language: str = 'en') -> str:
     definition = await fetch_from_duckduckgo(term, language)
     if definition:
         return definition
-
+    
+    # pre-release - not full paths
     return None
